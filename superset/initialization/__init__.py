@@ -725,7 +725,8 @@ class SupersetAppInitializer:  # pylint: disable=too-many-public-methods
         try:
             with self.superset_app.app_context():
                 # Simple connection test
-                db.engine.execute("SELECT 1")
+                with db.engine.connect() as conn:
+                    conn.execute(db.text("SELECT 1"))
         except Exception:
             db_uri = self.database_uri
             safe_uri = make_url_safe(db_uri) if db_uri else "Not configured"
