@@ -36,6 +36,11 @@ pyopenssl>=26.0.0,<27.0.0
 # Security: CVE-2026-25645 (MEDIUM) - Insecure Temporary File
 requests>=2.33.0,<3.0.0
 
+# Security: CVE-2026-44405 (LOW) - paramiko SHA-1 in RSA key handling
+# Fix requires paramiko>=5.0.0, blocked by sshtunnel 0.4.0 incompatibility
+# with paramiko>=4.0.0 (pahaz/sshtunnel#299). Upgrade deferred until sshtunnel
+# releases a compatible version. See tracking issue for details.
+
 # 5.0.0 has a sensitive deprecation used in other libs
 # -> https://github.com/aio-libs/async-timeout/blob/master/CHANGES.rst#500-2024-10-31
 async_timeout>=4.0.0,<5.0.0
