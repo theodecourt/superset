@@ -62,6 +62,8 @@ backoff==2.2.1
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
+backports-tarfile==1.2.0
+    # via jaraco-context
 bcrypt==4.3.0
     # via
     #   -c requirements/base-constraint.txt
@@ -429,7 +431,9 @@ idna==3.10
     #   trio
     #   url-normalize
 importlib-metadata==8.7.0
-    # via opentelemetry-api
+    # via
+    #   keyring
+    #   opentelemetry-api
 importlib-resources==6.5.2
     # via prophet
 iniconfig==2.0.0
