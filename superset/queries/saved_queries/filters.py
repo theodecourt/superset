@@ -18,9 +18,8 @@ from typing import Any
 
 from flask import g
 from flask_babel import lazy_gettext as _
-from flask_sqlalchemy import BaseQuery
 from sqlalchemy import or_
-from sqlalchemy.orm.query import Query
+from sqlalchemy.orm import Query
 
 from superset.models.sql_lab import SavedQuery
 from superset.tags.filters import BaseTagIdFilter, BaseTagNameFilter
@@ -80,11 +79,11 @@ class SavedQueryTagIdFilter(BaseTagIdFilter):  # pylint: disable=too-few-public-
 
 
 class SavedQueryFilter(BaseFilter):  # pylint: disable=too-few-public-methods
-    def apply(self, query: BaseQuery, value: Any) -> BaseQuery:
+    def apply(self, query: Query, value: Any) -> Query:
         """
         Filter saved queries to only those created by current user.
 
-        :returns: flask-sqlalchemy query
+        :returns: sqlalchemy query
         """
         return query.filter(
             SavedQuery.created_by == g.user  # pylint: disable=comparison-with-callable
