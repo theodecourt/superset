@@ -167,8 +167,8 @@ class AsyncQueryManager:
 
             reset_token = (
                 not request.cookies.get(self._jwt_cookie_name)
-                or "async_channel_id" not in session
-                or "async_user_id" not in session
+                or session.get("async_channel_id") is None
+                or session.get("async_user_id") is None
                 or user_id != session["async_user_id"]
             )
 
