@@ -242,7 +242,7 @@ filelock==3.20.3
     # via
     #   -c requirements/base-constraint.txt
     #   virtualenv
-flask==2.3.3
+flask==3.1.3
     # via
     #   -c requirements/base-constraint.txt
     #   apache-superset
@@ -522,6 +522,7 @@ markdown-it-py==3.0.0
 markupsafe==3.0.2
     # via
     #   -c requirements/base-constraint.txt
+    #   flask
     #   jinja2
     #   mako
     #   werkzeug
