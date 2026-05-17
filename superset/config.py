@@ -837,6 +837,10 @@ SSH_TUNNEL_LOCAL_BIND_ADDRESS = "127.0.0.1"
 SSH_TUNNEL_TIMEOUT_SEC = 10.0
 #: Timeout (seconds) for transport socket (``socket.settimeout``)
 SSH_TUNNEL_PACKET_TIMEOUT_SEC = 1.0
+#: Algorithms to disable in paramiko Transport (CVE-2026-44405 mitigation).
+#: Set to ``None`` to use the default (disable SHA-1 ``ssh-rsa``).
+#: Set to ``{}`` to disable the mitigation entirely (not recommended).
+SSH_TUNNEL_DISABLED_ALGORITHMS: dict[str, list[str]] | None = None
 
 
 # Feature flags may also be set via 'SUPERSET_FEATURE_' prefixed environment vars.

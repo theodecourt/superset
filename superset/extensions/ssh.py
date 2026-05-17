@@ -15,10 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import functools
 import logging
 from io import StringIO
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
+import paramiko
 import sshtunnel
 from flask import Flask
 from paramiko import RSAKey
@@ -31,12 +33,51 @@ if TYPE_CHECKING:
     from superset.databases.ssh_tunnel.models import SSHTunnel
 
 
+_SHA1_PATCH_APPLIED = False
+
+# Default algorithms to disable in paramiko Transport (CVE-2026-44405).
+# Removing "ssh-rsa" prevents negotiation of the SHA-1-based signature
+# scheme, matching the behaviour of paramiko >=5.0.0.
+_DEFAULT_DISABLED_ALGORITHMS: dict[str, list[str]] = {
+    "keys": ["ssh-rsa"],
+    "pubkeys": ["ssh-rsa"],
+}
+
+
+def _apply_sha1_mitigation(
+    disabled_algorithms: dict[str, list[str]] | None = None,
+) -> None:
+    """Patch paramiko Transport to disable SHA-1 RSA algorithms.
+
+    Workaround for CVE-2026-44405 while paramiko < 5.0.0 is required
+    due to sshtunnel 0.4.0 incompatibility with paramiko >= 4.0.0.
+    """
+    global _SHA1_PATCH_APPLIED  # noqa: PLW0603
+    if _SHA1_PATCH_APPLIED:
+        return
+
+    algorithms = disabled_algorithms or _DEFAULT_DISABLED_ALGORITHMS
+    _original_init = paramiko.Transport.__init__
+
+    @functools.wraps(_original_init)
+    def _patched_init(self: paramiko.Transport, *args: Any, **kwargs: Any) -> None:
+        if "disabled_algorithms" not in kwargs:
+            kwargs["disabled_algorithms"] = algorithms
+        _original_init(self, *args, **kwargs)
+
+    paramiko.Transport.__init__ = _patched_init  # type: ignore[method-assign]
+    _SHA1_PATCH_APPLIED = True
+
+
 class SSHManager:
     def __init__(self, app: Flask) -> None:
         super().__init__()
         self.local_bind_address = app.config["SSH_TUNNEL_LOCAL_BIND_ADDRESS"]
         sshtunnel.TUNNEL_TIMEOUT = app.config["SSH_TUNNEL_TIMEOUT_SEC"]
         sshtunnel.SSH_TIMEOUT = app.config["SSH_TUNNEL_PACKET_TIMEOUT_SEC"]
+        _apply_sha1_mitigation(
+            app.config.get("SSH_TUNNEL_DISABLED_ALGORITHMS"),
+        )
 
     def build_sqla_url(
         self, sqlalchemy_url: str, server: sshtunnel.SSHTunnelForwarder

@@ -16,9 +16,12 @@
 # under the License.
 from unittest.mock import Mock
 
+import paramiko
+import pytest
 import sshtunnel
 
-from superset.extensions.ssh import SSHManagerFactory
+import superset.extensions.ssh as ssh_module
+from superset.extensions.ssh import _apply_sha1_mitigation, SSHManagerFactory
 
 
 def test_ssh_tunnel_timeout_setting() -> None:
@@ -34,3 +37,29 @@ def test_ssh_tunnel_timeout_setting() -> None:
     factory.init_app(app)
     assert sshtunnel.TUNNEL_TIMEOUT == 123.0
     assert sshtunnel.SSH_TIMEOUT == 321.0
+
+
+def test_sha1_mitigation_patches_transport(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """_apply_sha1_mitigation replaces Transport.__init__ to disable ssh-rsa."""
+    monkeypatch.setattr(ssh_module, "_SHA1_PATCH_APPLIED", False)
+    original_init = paramiko.Transport.__init__
+
+    try:
+        _apply_sha1_mitigation()
+        assert paramiko.Transport.__init__ is not original_init
+        assert ssh_module._SHA1_PATCH_APPLIED is True
+    finally:
+        paramiko.Transport.__init__ = original_init  # type: ignore[method-assign]
+        monkeypatch.setattr(ssh_module, "_SHA1_PATCH_APPLIED", False)
+
+
+def test_sha1_mitigation_is_idempotent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Calling _apply_sha1_mitigation twice does not double-patch."""
+    monkeypatch.setattr(ssh_module, "_SHA1_PATCH_APPLIED", True)
+    original_init = paramiko.Transport.__init__
+    _apply_sha1_mitigation()
+    assert paramiko.Transport.__init__ is original_init

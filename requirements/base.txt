@@ -276,6 +276,7 @@ pandas==2.1.4
     # via apache-superset (pyproject.toml)
 paramiko==3.5.1
     # via
+    #   -r requirements/base.in
     #   apache-superset (pyproject.toml)
     #   sshtunnel
 parsedatetime==2.6
