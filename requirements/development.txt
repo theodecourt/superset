@@ -1069,7 +1069,7 @@ url-normalize==2.2.1
     # via
     #   -c requirements/base-constraint.txt
     #   requests-cache
-urllib3==2.6.3
+urllib3==2.7.0
     # via
     #   -c requirements/base-constraint.txt
     #   botocore
